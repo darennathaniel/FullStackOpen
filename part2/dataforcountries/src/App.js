@@ -11,7 +11,6 @@ const App = () => {
       .get("https://restcountries.eu/rest/v2/all")
       .then((res) => {
         setData(res.data);
-        console.log(res.data);
       })
       .catch((err) => {
         console.log(err);
@@ -110,6 +109,16 @@ const App = () => {
                   onClick={() => {
                     setShow(true);
                     setIndex(index);
+                    const params = {
+                      access_key: "f0fdc32e50a5296f5f2d054cb588495e",
+                      query: "New York",
+                    };
+                    axios
+                      .get("https://api.weatherstack.com/current", { params })
+                      .then((res) => {
+                        console.log(res.data);
+                      })
+                      .catch((err) => console.log(err));
                   }}
                 >
                   show
