@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Filter = (props) => {
   const { filterFunction } = props;
@@ -35,18 +36,75 @@ const PersonForm = (props) => {
 };
 
 const Persons = (props) => {
-  const { persons, filterName } = props;
+  const { persons, filterName, setPersons } = props;
   return persons
     .filter((name) =>
       name.name.toLowerCase().includes(filterName.toLowerCase())
     )
     .map((person) => {
       return (
-        <p key={person.id}>
-          {person.name} {person.number}
-        </p>
+        <>
+          <p key={person.id}>
+            {person.name} {person.number}
+          </p>
+          <button onClick={() => deleteData(person, persons, setPersons)}>
+            delete
+          </button>
+        </>
       );
     });
+};
+
+const makeRequest = (setPersons) => {
+  axios
+    .get("http://localhost:3001/persons")
+    .then((res) => {
+      setPersons(res.data);
+    })
+    .catch((err) => {
+      console.log(err.respone);
+    });
+};
+
+const postData = (newName, newNumber, persons, setPersons) => {
+  axios
+    .post("http://localhost:3001/persons", {
+      name: newName,
+      number: newNumber,
+      id: persons[persons.length - 1].id + 1,
+    })
+    .then((res) => {
+      const newPerson = persons.concat(res.data);
+      setPersons(newPerson);
+    })
+    .catch((err) => console.log(err.response));
+};
+
+const putData = (person, setPersons, newNumber, persons) => {
+  axios
+    .put(`http://localhost:3001/persons/${person.id}`, {
+      name: person.name,
+      number: newNumber,
+      id: person.id,
+    })
+    .then((res) => {
+      const newPerson = persons.map((x) =>
+        x.id === person.id ? { ...x, number: newNumber } : x
+      );
+      setPersons(newPerson);
+    })
+    .catch((err) => {
+      console.log(err.response);
+    });
+};
+
+const deleteData = (person, persons, setPersons) => {
+  if (window.confirm(`Delete ${person.name}`)) {
+    axios.delete(`http://localhost:3001/persons/${person.id}`).then((res) => {
+      const newPerson = persons.filter((data) => data.id !== person.id);
+      setPersons(newPerson);
+    });
+  }
 };
 
 const App = () => {
@@ -54,17 +112,24 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filterName, setFilterName] = useState("");
+  useEffect(() => {
+    makeRequest(setPersons);
+  }, []);
   function handleClick(e) {
     e.preventDefault();
     if (persons.filter((name) => name.name === newName).length > 0) {
-      window.alert(`${newName} is already added to phonebook`);
+      if (
+        window.confirm(
+          `${newName} is already added to phonebook. Want to replace the phone number?`
+        )
+      ) {
+        const selectedPerson = persons.filter(
+          (name) => name.name === newName
+        )[0];
+        putData(selectedPerson, setPersons, newNumber, persons);
+      }
     } else {
-      const newPerson = persons.concat({
-        name: newName,
-        number: newNumber,
-        id: persons.length + 1,
-      });
-      setPersons(newPerson);
+      postData(newName, newNumber, persons, setPersons);
     }
   }
   function handleNameChange(e) {
@@ -87,7 +152,11 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       ></PersonForm>
       <h3>Numbers</h3>
-      <Persons persons={persons} filterName={filterName}></Persons>
+      <Persons
+        persons={persons}
+        filterName={filterName}
+        setPersons={setPersons}
+      ></Persons>
     </div>
   );
 };
