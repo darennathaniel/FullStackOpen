@@ -57,7 +57,7 @@ const Persons = (props) => {
 
 const makeRequest = (setPersons) => {
   axios
-    .get("https://mighty-harbor-28172.herokuapp.com/api/persons")
+    .get("api/persons")
     .then((res) => {
       setPersons(res.data);
     })
@@ -68,7 +68,7 @@ const makeRequest = (setPersons) => {
 
 const postData = (newName, newNumber, persons, setPersons) => {
   axios
-    .post("https://mighty-harbor-28172.herokuapp.com/api/persons", {
+    .post("api/persons", {
       name: newName,
       number: newNumber,
       id: persons[persons.length - 1].id + 1,
@@ -82,7 +82,7 @@ const postData = (newName, newNumber, persons, setPersons) => {
 
 const putData = (person, setPersons, newNumber, persons) => {
   axios
-    .put(`https://mighty-harbor-28172.herokuapp.com/api/persons/${person.id}`, {
+    .put(`api/persons/${person.id}`, {
       name: person.name,
       number: newNumber,
       id: person.id,
@@ -100,14 +100,10 @@ const putData = (person, setPersons, newNumber, persons) => {
 
 const deleteData = (person, persons, setPersons) => {
   if (window.confirm(`Delete ${person.name}`)) {
-    axios
-      .delete(
-        `https://mighty-harbor-28172.herokuapp.com/api/persons/${person.id}`
-      )
-      .then((res) => {
-        const newPerson = persons.filter((data) => data.id !== person.id);
-        setPersons(newPerson);
-      });
+    axios.delete(`api/persons/${person.id}`).then((res) => {
+      const newPerson = persons.filter((data) => data.id !== person.id);
+      setPersons(newPerson);
+    });
   }
 };
 
